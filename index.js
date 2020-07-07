@@ -3,8 +3,6 @@ const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
 
-// comment for testing build pipeline
-
 app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
