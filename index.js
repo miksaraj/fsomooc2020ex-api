@@ -24,14 +24,14 @@ app.get('/api/persons', (req, res) => {
 
 app.get('/api/persons/:id', (req, res, next) => {
 	Person.findById(req.params.id)
-	.then(person => {
-		if (person) {
-			res.json(person)
-		} else {
-			res.status(404).end()
-		}
-	})
-	.catch(e => next(e))
+		.then(person => {
+			if (person) {
+				res.json(person)
+			} else {
+				res.status(404).end()
+			}
+		})
+		.catch(e => next(e))
 })
 
 app.post('/api/persons', (req, res, next) => {
@@ -41,11 +41,11 @@ app.post('/api/persons', (req, res, next) => {
 		number: body.number
 	})
 	person.save()
-	.then(savedPerson => savedPerson.toJSON())
-	.then(savedAndFormattedPerson => {
-		res.json(savedAndFormattedPerson)
-	})
-	.catch(e => next(e))
+		.then(savedPerson => savedPerson.toJSON())
+		.then(savedAndFormattedPerson => {
+			res.json(savedAndFormattedPerson)
+		})
+		.catch(e => next(e))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -55,21 +55,21 @@ app.put('/api/persons/:id', (req, res, next) => {
 		number: body.number
 	}
 	Person.findByIdAndUpdate(req.params.id, person, { new: true })
-	.then(updatedPerson => {
-		res.json(updatedPerson)
-	})
-	.catch(e => {
-		console.log(e.name)
-		next(e)
-	})
+		.then(updatedPerson => {
+			res.json(updatedPerson)
+		})
+		.catch(e => {
+			console.log(e.name)
+			next(e)
+		})
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
 	Person.findByIdAndRemove(req.params.id)
-	.then(r => {
-		res.status(204).end()
-	})
-	.catch(e => next(e))
+		.then(() => {
+			res.status(204).end()
+		})
+		.catch(e => next(e))
 })
 
 const unknownEndpoint = (req, res) => {
@@ -85,11 +85,12 @@ const errorHandler = (e, req, res, next) => {
 	} else if (e.name === 'ValidationError') {
 		return res.status(400).json({ error: e.message })
 	}
-	next(error)
+	next(e)
 }
 
 app.use(errorHandler)
 
+// eslint-disable-next-line no-undef
 const PORT = process.env.PORT
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
