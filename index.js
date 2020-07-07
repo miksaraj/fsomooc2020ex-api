@@ -11,7 +11,7 @@ app.use(express.json())
 app.use(morgan('tiny'))
 
 app.get('/info', (req, res) => {
-	Person.count({}).then(c => {
+	Person.countDocuments({}).then(c => {
 		res.send(`<p>Phonebook has info for ${c} people.</p><p>${new Date()}</p>`)
 	})
 })
@@ -34,27 +34,18 @@ app.get('/api/persons/:id', (req, res, next) => {
 	.catch(e => next(e))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
 	const body = req.body
-	if (!body.name || !body.number) {
-		return res.status(400).json({
-			error: 'Required field(s) missing.'
-		})
-	}
-	/*
-	if (persons.some(p => p.name === body.name)) {
-		return res.status(400).json({
-			error: 'Name must be unique.'
-		})
-	}
-	*/
 	const person = new Person({
 		name: body.name,
 		number: body.number
 	})
-	person.save().then(savedPerson => {
-		res.json(savedPerson)
+	person.save()
+	.then(savedPerson => savedPerson.toJSON())
+	.then(savedAndFormattedPerson => {
+		res.json(savedAndFormattedPerson)
 	})
+	.catch(e => next(e))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -64,10 +55,13 @@ app.put('/api/persons/:id', (req, res, next) => {
 		number: body.number
 	}
 	Person.findByIdAndUpdate(req.params.id, person, { new: true })
-		.then(updatedPerson => {
-			res.json(updatedPerson)
-		})
-		.catch(e => next(e))
+	.then(updatedPerson => {
+		res.json(updatedPerson)
+	})
+	.catch(e => {
+		console.log(e.name)
+		next(e)
+	})
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -88,6 +82,8 @@ const errorHandler = (e, req, res, next) => {
 	console.error(e.message)
 	if (e.name === 'CastError') {
 		return res.status(400).send({ error: 'malformatted id' })
+	} else if (e.name === 'ValidationError') {
+		return res.status(400).json({ error: e.message })
 	}
 	next(error)
 }
